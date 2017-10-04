@@ -55,9 +55,16 @@ Repo.clone = function( options, callback ) {
 	repo.exec.apply( repo, args );
 };
 
-Repo.isRepo = function( path, callback ) {
-	var repo = new Repo( path );
-	repo.isRepo( callback );
+/**
+ * static check for whether a path is a git repo
+ *
+ * @param {string} path - path to check
+ * @param {function(err, Boolean)} callback
+ * @returns {Promise(Boolean)} if not callback passed
+ */
+Repo.isRepo = ( path, callback ) => {
+	const repo = new Repo( path );
+	return repo.isRepo( callback );
 };
 
 Repo.prototype.exec = function() {
@@ -301,23 +308,35 @@ Repo.prototype.currentBranch = function( callback ) {
 	});
 };
 
-Repo.prototype.isRepo = function( callback ) {
-	this.exec( "rev-parse", "--git-dir", function( error ) {
-		if ( error ) {
-			if ( error.message.indexOf( "Not a git repository" ) ) {
-				return callback( null, false );
+/**
+ * check for whether a path is a git repo
+ *
+ * @param {string} path - path to check
+ * @param {function(err, Boolean)} callback
+ * @returns {Promise(Boolean)} if no callback passed
+ */
+Repo.prototype.isRepo = ( callback ) => {
+
+	const promise = new Promise((resolve, reject) => {
+
+		this.exec("rev-parse", "--git-dir")
+		.then(noErr => resolve(true))
+		.catch(err => {
+			if(err.message.indexOf( "Not a git repository" ) ) {
+				return resolve(false);
 			}
 
-			// If the path doesn't exist, don't return an error
-			if ( error.code === "ENOENT" ) {
-				return callback( null, false );
+			// If the path doesn't exist, don't return an err
+			if (err.code === "ENOENT") {
+				return resolve(false);
 			}
 
-			return callback( error );
-		}
-
-		callback( null, true );
+			return reject(err);
+		});
 	});
+
+	return (callback) ?
+		promise.then(r => callback(null, r)).catch(e => callback(e)) : promise;
 };
 
 Repo.prototype.remotes = function( callback ) {
