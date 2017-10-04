@@ -61,18 +61,25 @@ Repo.isRepo = function( path, callback ) {
 };
 
 Repo.prototype.exec = function() {
-	var args = [].slice.call( arguments );
-	var callback = args.pop();
-	spawn( "git", args, { cwd: this.path }, function( error, stdout ) {
-		if ( error ) {
-			return callback( error );
-		}
+	const args = [].slice.call( arguments );
 
-		// Remove trailing newline
-		stdout = stdout.replace( /\n$/, "" );
+	const callback = (args.length > 0 && typeof(args[args.length - 1] === 'function'))?
+		args.pop(): null;
 
-		callback( null, stdout );
+	const promise = new Promise((resolve, reject) => {
+
+		spawn( "git", args, { cwd: this.path }, function( err, stdout ) {
+			if(err) { return reject(err); }
+
+			// Remove trailing newline
+			stdout = stdout.replace(/\n$/, "");
+
+			resolve(stdout);
+		});
 	});
+
+    return (callback) ?
+        promise.then(r => callback(null, r)).catch(e => callback(e)) : promise;
 };
 
 Repo.prototype.activeDays = function( committish, callback ) {
