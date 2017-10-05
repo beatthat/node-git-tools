@@ -1,4 +1,4 @@
-var spawn = require( "spawnback" );
+var spawn = require('spawnback');
 
 function extend( a, b ) {
 	for ( var prop in b ) {
@@ -73,14 +73,14 @@ Repo.prototype.exec = function() {
 	const callback = (args.length > 0 && typeof(args[args.length - 1]) === 'function')?
 		args.pop(): null;
 
-	console.log('will exec git ' + args.join(' ') + "... on cwd " + this.path)
+	// console.log('will exec git ' + args.join(' ') + "... on cwd " + this.path)
 
 	const promise = new Promise((resolve, reject) => {
 
 		spawn( "git", args, { cwd: this.path }, function( err, stdout ) {
 			if(err) {
 
-					console.log('ERROR for git ' + args.join(' ') + "... on cwd " + this.path + ': %j', err)
+					// console.log('ERROR for git ' + args.join(' ') + ': %j', err)
 
 				return reject(err);
 			}
@@ -351,38 +351,48 @@ Repo.prototype.isRepo = function(callback) {
 };
 
 Repo.prototype.remotes = function( callback ) {
-	this.exec( "remote", "-v", function( error, data ) {
-		if ( error ) {
-			return callback( error );
-		}
 
-		var remotes = data.split( "\n" );
-		var rRemote = /^(\S+)\s(\S+)/;
-		var remoteMap = {};
+	const r = this;
 
-		remotes.forEach(function( remote ) {
-			var matches = rRemote.exec( remote );
+	const promise = new Promise((resolve, reject) => {
 
-			// New repositories with no remotes will have `origin` but no URL
-			if ( !matches ) {
-				return;
+		r.exec( "remote", "-v", function( error, data ) {
+			if ( error ) {
+				return reject( error );
 			}
 
-			var name = matches[ 1 ];
-			var url = matches[ 2 ];
+			const rRemote = /^(\S+)\s(\S+)/;
+			const remoteMap = {};
 
-			remoteMap[ name ] = url;
+			var remotes = data.split( "\n" ); // windows?
+
+			remotes.forEach(( remote ) => {
+				const matches = rRemote.exec( remote );
+
+				// New repositories with no remotes will have `origin` but no URL
+				if (!matches) {
+					return;
+				}
+
+				const name = matches[1].trim();
+				const url = matches[2].trim();
+
+				remoteMap[name] = url;
+			});
+
+			remotes = Object.keys(remoteMap).map(remote => {
+				return {
+					name: remote,
+					url: remoteMap[remote]
+				};
+			});
+
+			resolve(remotes);
 		});
-
-		remotes = Object.keys( remoteMap ).map(function( remote ) {
-			return {
-				name: remote,
-				url: remoteMap[ remote ]
-			};
-		});
-
-		callback( null, remotes );
 	});
+
+	return (callback) ?
+		promise.then(r => callback(null, r)).catch(e => callback(e)) : promise;
 };
 
 Repo.prototype.resolveCommittish = function( committish, callback ) {
