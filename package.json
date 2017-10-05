@@ -19,7 +19,7 @@
     "url": "git://github.com/scottgonzalez/node-git-tools.git"
   },
   "scripts": {
-      "pub:tag": "git add -A && git commit -m ${npm_package_version} && git tag -a ${npm_package_version} -m ${npm_package_version} && git push origin master && git push origin ${npm_package_version}"
+    "pub:tag": "git add -A && git commit -m ${npm_package_version} && git tag -a ${npm_package_version} -m ${npm_package_version} && git push origin master && git push origin ${npm_package_version}"
   },
   "dependencies": {
     "spawnback": "~1.0.0"

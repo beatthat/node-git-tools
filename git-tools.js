@@ -70,16 +70,28 @@ Repo.isRepo = ( path, callback ) => {
 Repo.prototype.exec = function() {
 	const args = [].slice.call( arguments );
 
-	const callback = (args.length > 0 && typeof(args[args.length - 1] === 'function'))?
+
+
+	const callback = (args.length > 0 && typeof(args[args.length - 1]) === 'function')?
 		args.pop(): null;
+
+
+	console.log('exec git ' + args.join(' ') + '...callback=%j', typeof(callback))
 
 	const promise = new Promise((resolve, reject) => {
 
 		spawn( "git", args, { cwd: this.path }, function( err, stdout ) {
-			if(err) { return reject(err); }
+			if(err) {
+				console.log('exec git ' + args.join(' ') + '...err=%j', err)
+				return reject(err);
+			}
+
+			console.log('exec git ' + args.join(' ') + '...stdout=%j', stdout)
 
 			// Remove trailing newline
 			stdout = stdout.replace(/\n$/, "");
+
+			console.log('exec git ' + args.join(' ') + '...will resolve...')
 
 			resolve(stdout);
 		});
@@ -315,15 +327,19 @@ Repo.prototype.currentBranch = function( callback ) {
  * @param {function(err, Boolean)} callback
  * @returns {Promise(Boolean)} if no callback passed
  */
-Repo.prototype.isRepo = ( callback ) => {
+Repo.prototype.isRepo = function(callback) {
 
 	const r = this;
 
 	const promise = new Promise((resolve, reject) => {
 
 		r.exec("rev-parse", "--git-dir")
-		.then(noErr => resolve(true))
+		.then(noErr => {
+			console.log('isRepo rev parse got response')
+			resolve(true);
+		})
 		.catch(err => {
+			console.log('isRepo rev parse got err=%j', err)
 			if(err.message.indexOf( "Not a git repository" ) ) {
 				return resolve(false);
 			}
