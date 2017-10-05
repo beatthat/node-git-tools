@@ -70,28 +70,18 @@ Repo.isRepo = ( path, callback ) => {
 Repo.prototype.exec = function() {
 	const args = [].slice.call( arguments );
 
-
-
 	const callback = (args.length > 0 && typeof(args[args.length - 1]) === 'function')?
 		args.pop(): null;
-
-
-	console.log('exec git ' + args.join(' ') + '...callback=%j', typeof(callback))
 
 	const promise = new Promise((resolve, reject) => {
 
 		spawn( "git", args, { cwd: this.path }, function( err, stdout ) {
 			if(err) {
-				console.log('exec git ' + args.join(' ') + '...err=%j', err)
 				return reject(err);
 			}
 
-			console.log('exec git ' + args.join(' ') + '...stdout=%j', stdout)
-
 			// Remove trailing newline
 			stdout = stdout.replace(/\n$/, "");
-
-			console.log('exec git ' + args.join(' ') + '...will resolve...')
 
 			resolve(stdout);
 		});
@@ -335,11 +325,9 @@ Repo.prototype.isRepo = function(callback) {
 
 		r.exec("rev-parse", "--git-dir")
 		.then(noErr => {
-			console.log('isRepo rev parse got response')
 			resolve(true);
 		})
 		.catch(err => {
-			console.log('isRepo rev parse got err=%j', err)
 			if(err.message.indexOf( "Not a git repository" ) ) {
 				return resolve(false);
 			}
