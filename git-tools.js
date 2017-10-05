@@ -73,10 +73,15 @@ Repo.prototype.exec = function() {
 	const callback = (args.length > 0 && typeof(args[args.length - 1]) === 'function')?
 		args.pop(): null;
 
+	console.log('will exec git ' + args.join(' ') + "... on cwd " + this.path)
+
 	const promise = new Promise((resolve, reject) => {
 
 		spawn( "git", args, { cwd: this.path }, function( err, stdout ) {
 			if(err) {
+
+					console.log('ERROR for git ' + args.join(' ') + "... on cwd " + this.path + ': %j', err)
+
 				return reject(err);
 			}
 
