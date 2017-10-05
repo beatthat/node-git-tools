@@ -317,9 +317,11 @@ Repo.prototype.currentBranch = function( callback ) {
  */
 Repo.prototype.isRepo = ( callback ) => {
 
+	const r = this;
+
 	const promise = new Promise((resolve, reject) => {
 
-		this.exec("rev-parse", "--git-dir")
+		r.exec("rev-parse", "--git-dir")
 		.then(noErr => resolve(true))
 		.catch(err => {
 			if(err.message.indexOf( "Not a git repository" ) ) {
