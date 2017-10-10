@@ -67,7 +67,7 @@ Repo.isRepo = ( path, callback ) => {
 	return repo.isRepo( callback );
 };
 
-Repo.prototype.exec = function() {
+Repo.prototype.exec = async function() {
 	const args = [].slice.call( arguments );
 
 	const callback = (args.length > 0 && typeof(args[args.length - 1]) === 'function')?
@@ -319,14 +319,13 @@ Repo.prototype.currentBranch = function( callback ) {
  * check for whether a path is a git repo
  *
  * @param {string} path - path to check
- * @param {function(err, Boolean)} callback
  * @returns {Promise(Boolean)} if no callback passed
  */
-Repo.prototype.isRepo = function(callback) {
+Repo.prototype.isRepo = async function() {
 
 	const r = this;
 
-	const promise = new Promise((resolve, reject) => {
+	return new Promise((resolve, reject) => {
 
 		r.exec("rev-parse", "--git-dir")
 		.then(noErr => {
@@ -345,9 +344,6 @@ Repo.prototype.isRepo = function(callback) {
 			return reject(err);
 		});
 	});
-
-	return (callback) ?
-		promise.then(r => callback(null, r)).catch(e => callback(e)) : promise;
 };
 
 Repo.prototype.remotes = function( callback ) {
